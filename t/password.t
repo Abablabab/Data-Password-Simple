@@ -4,7 +4,7 @@ use strict;
 use Test::More;
 
 use lib::abs('../lib');
-use Data::Password::Simple 0.3;
+use Data::Password::Simple 0.03;
 
 plan('no_plan');
 
