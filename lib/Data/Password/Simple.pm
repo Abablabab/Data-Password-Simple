@@ -11,18 +11,23 @@ use Carp;
 Data::Password::Simple provides a system of checking given strings against
 password complexity requirements.
 
-Current features: 
+=head2 Current features: 
 
-    Case-insensitive dictionary word checking.
-    Minimum password length checking.
+=over
+
+=item Case-insensitive dictionary word checking.
+
+=item Minimum password length checking.
+
+=back
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 
 =head1 SYNOPSIS
@@ -46,15 +51,19 @@ our $VERSION = '0.01';
 
 =item length
 
-Optional. The minimum password length required.
+Optional. The minimum password length required. Supply C<0> to disable length
+checking.
 
-Assumes 1 if not set.
+Default is 6.
 
 =item dictionary
 
-Optional. Enables dictionary checking.
+Optional. Enables dictionary checking. 
 
-Accepts either a word list, or a file location.
+Accepts either a word list, or a file location. B<NOTE> dictionary checking is
+case-insensitive.
+
+Default is to disable dictionary checking
 
 =back
 
@@ -73,12 +82,14 @@ sub new {
     my %params = @_;
     my %self;
 
+    $self{_default_length} = 6;
+
     if ($params{dictionary}) {
         my $dict = _load_dict( $params{dictionary} );
         $self{_dictionary} = $dict // undef;
     }
 
-    $self{_length} = $params{length} // 1;
+    $self{_length} = $params{length} // $self{_default_length};
 
     return bless (\%self, $package);
 }
@@ -91,14 +102,22 @@ Set or unset the dictionary used for word checking.
 
 =head4 Input
 
+=over
+
 Expects a either a list, a file location scalar or undef
 
 Setting undef disables dictionary checking. Setting a dictionary enables it.
 
+=back
+
 =head4 Output
+
+=over
 
 Returns true value if the dictionary is successfully updated, a false value
 otherwise.
+
+=back
 
 =cut
 
@@ -106,8 +125,12 @@ sub dictionary {
     my $self = shift;
     my $replacement = shift;
 
+    # Return true if dictionary is being set undef
+    if (!$replacement) { return 1 }
+
     $self->{_dictionary} = _load_dict($replacement);
 
+    # If a dictionary was given,
     if ( %{ $self->{_dictionary} } ) {
         return 1;
     }
@@ -115,27 +138,35 @@ sub dictionary {
     return;
 }
 
-=head3 length 
+=head3 required_length 
 
-Set the minimum word required word length. 
-
-If called without argument assumes 1
+Access the minimum required password length. 
 
 =head4 Input
 
-Expects an integer
+=over
+
+Optional. The new minimum password length required.
+
+=back
 
 =head4 Output
 
-Returns new minimum length value
+=over
+
+Returns new minimum length value or current value if no new value is suppplied.
+
+=back
 
 =cut 
 
-sub length {
+sub required_length {
     my $self = shift;
     my $length = shift;
 
-    $self->{_length} = $length // 1;
+    if ($length) {
+        $self->{_length} = $length;
+    }
 
     return $self->{_length};
 }
@@ -146,9 +177,27 @@ Checks a given password against the specified criteria
 
 =head4 Input
 
-Expects a scalar password
+=over
+
+    Expects a scalar password
+
+=back
 
 =head4 Output
+
+=over
+
+    =item OK
+
+    Returns a true value if the password is okay.
+
+=back 
+
+If called in a list context, also returns: 
+
+=over
+
+=item status
 
 =over
 
@@ -174,6 +223,10 @@ True value if the password matches a dictionary word.
 
 =back
 
+=back
+
+=back
+
 =cut
 
 sub check {
@@ -181,7 +234,7 @@ sub check {
     my $password = shift;
     my %error;
 
-    if (CORE::length $password < $self->{_length}) {
+    if (length $password < $self->{_length}) {
         $error{too_short} = 1;
     }
 
@@ -190,10 +243,10 @@ sub check {
     }
 
     if (%error) {
-        return { error => \%error };
+        return undef, { error => \%error };
     }
 
-    return { success => 1 };
+    return 1, { success => 1 };
 }
 
 sub _load_dict {
@@ -201,7 +254,7 @@ sub _load_dict {
     my %dict;
 
     # Create a dictionary from a given list.
-    if ( ref ($source) =~ /ARRAY/i )  {
+    if ( ref ($source) eq 'ARRAY' )  {
         for my $word ( @{$source} ) {
             $dict{$word} = 1;
         }
@@ -210,17 +263,17 @@ sub _load_dict {
 
     # Or assume we've been given a file name.
     # Make sure it's actually a file.
-    if ( (!-e $source || !-r _) or (!-f _ || !-l _ ) ) {
+    if ( !-e $source || !-r _ || -d _ ) {
         carp "$source does not exist, is not readable, or is not a file";
         return;
     }
 
-    open (my $FILE, '<', $source) or do {
+    open (my $dict_fh, '<', $source) or do {
         carp "Failed to open $source for reading";
         return;
     };
 
-    while (<$FILE>) {
+    while (<$dict_fh>) {
         chomp;
         $dict{$_} = 1;
     }
