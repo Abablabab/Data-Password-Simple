@@ -3,11 +3,29 @@
 use strict;
 use Test::More;
 
-use Data::Password::Simple;
+use lib::abs('../lib');
+use Data::Password::Simple 0.3;
 
 plan('no_plan');
 
-my @passwords = qw( short indictionary notindictionary both ); 
+my @test_words = qw( 
+    Telephone Sausage   Monkey Button    
+    BOOK      CABBAGE   GLASS  MOUSE     
+    stomache  cardboard ferry  christmas 
+);
+
+my @dictionary = qw( 
+    Telephone Sausage    
+    BOOK      CABBAGE    
+    stomache  cardboard  
+);
+
+my $min_length = 6;
+
+sub _expect {
+    if (grep 
+
+
 my $pc = Data::Password::Simple->new(
     dictionary => ['indictionary', 'both'],
     length => 6,
@@ -42,3 +60,13 @@ is_deeply( $pc->check("notindictionary"),
     { success => 1 },
     'Accepted password that meets minimum lengths and is not in the dictionary'
 );
+
+# Okay, testing strategy
+#   test creation / accesors
+#   test password checking
+#       short
+#       in dictionary
+#       both
+#       okay
+#   test changing dictionary
+#   test dictionary case insensitivity
