@@ -1,0 +1,12 @@
+Changelog for Data::Password::Simple
+
+    0.1
+        Initial release
+
+    0.2
+        Sensible default minimum length (6 characters)
+        Actually returns true if the dictionary is set to undef
+        No longer uses stupid sub name 'length' to ruin everyone's day
+        Now matches arrays and only arrays
+        No longer treats folder symlinks as file symlinks
+
