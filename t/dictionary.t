@@ -15,7 +15,7 @@ plan('no_plan');
 my @test_words = qw( 
     telephone sausage   monkey button    
     book      cabbage   glass  mouse     
-    stomache  cardboard ferry  christmas 
+    stomach   cardboard ferry  christmas 
 );
 
 my @dictionary = qw(
