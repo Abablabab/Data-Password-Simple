@@ -13,5 +13,6 @@ Changelog for Data::Password::Simple
     0.3
         Refactor check() to be more extensible to new tests
         Add tests for dictionary checking
+        Add tests for length checking
 
 
