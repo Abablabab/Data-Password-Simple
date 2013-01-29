@@ -10,3 +10,8 @@ Changelog for Data::Password::Simple
         Now matches arrays and only arrays
         No longer treats folder symlinks as file symlinks
 
+    0.3
+        Refactor check() to be more extensible to new tests
+        Add tests for dictionary checking
+
+
