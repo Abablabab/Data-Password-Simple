@@ -23,11 +23,11 @@ password complexity requirements.
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
@@ -201,7 +201,7 @@ If called in a list context, also returns:
 
 =over
 
-=item success
+=item acceptable
 
 Supplied with true value if the password meets requirements.
 
@@ -232,23 +232,33 @@ True value if the password matches a dictionary word.
 sub check {
     my $self = shift;
     my $password = shift;
+
+    # Create an extensible list of tests
+    my $checks = {
+        too_short => sub { $self->{_length} > length shift },
+        in_dictionary => sub { exists $self->{_dictionary}{lc shift} },
+    };
+
     my %error;
-
-    if (length $password < $self->{_length}) {
-        $error{too_short} = 1;
-    }
-
-    if (exists $self->{_dictionary}{lc $password}) {
-        $error{in_dictionary} = 1;
+    for my $check ( keys %{$checks} ) {
+        $error{$check} = 1 if $checks->{$check}->($password);
     }
 
     if (%error) {
-        return undef, { error => \%error };
+        return wantarray 
+            ? ( 0, { error => \%error } )
+            : 0
+            ;
     }
 
-    return 1, { success => 1 };
+    return wantarray
+        ? ( 1, { acceptable => 1 } )
+        : 1
+        ;
 }
 
+
+# Loads and returns a dictionary hash from a file location or an arrayref
 sub _load_dict {
     my $source = shift;
     my %dict;
