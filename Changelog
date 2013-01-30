@@ -15,4 +15,5 @@ Changelog for Data::Password::Simple
         Add tests for dictionary checking
         Add tests for length checking
 
-
+    0.4
+        No changes - administrative release
