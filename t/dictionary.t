@@ -8,7 +8,7 @@ use strict;
 use Test::Deep;
 use Test::More;
 
-use Data::Password::Simple 0.04;
+use Data::Password::Simple 0.05;
 
 plan('no_plan');
 
